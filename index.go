@@ -2,9 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
-
-	lib "./lib"
 
 	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
@@ -31,7 +30,6 @@ func main() {
 	http.HandleFunc("/signup", signupPage)
 	http.HandleFunc("/login", loginPage)
 	http.HandleFunc("/", homePage)
-	lib.Globalprint()
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -44,6 +42,34 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 		http.ServeFile(res, req, "login.html")
 		return
 	}
+	var user Users
+	user = Users{
+		username: req.FormValue("username"),
+		password: req.FormValue("password"),
+	}
+	fmt.Println("username : " + user.username)
+	fmt.Println("password : " + user.password)
+	var dbName string
+	var dbPass string
+
+	err = db.QueryRow("SELECT username,password FROM users WHERE username=?", user.username).Scan(dbName, dbPass)
+	fmt.Println("error : " + err.Error())
+	fmt.Println("username : " + dbName)
+	fmt.Println("password : " + dbPass)
+
+	if err != nil {
+		http.Redirect(res, req, "/login", 301)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbPass), []byte(user.password))
+
+	if err != nil {
+		http.Redirect(res, req, "/login", 301)
+		return
+	}
+
+	res.Write([]byte("Hello : " + dbName))
 
 }
 
@@ -82,5 +108,6 @@ func signupPage(res http.ResponseWriter, req *http.Request) {
 		return
 	default:
 		http.Redirect(res, req, "/", 301)
+		return
 	}
 }
