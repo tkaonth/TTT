@@ -22,6 +22,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
 	defer db.Close()
 	err = db.Ping()
 	if err != nil {
@@ -49,11 +50,22 @@ func loginPage(res http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Println("username : " + user.username)
 	fmt.Println("password : " + user.password)
+	var id string
 	var dbName string
 	var dbPass string
 
-	err = db.QueryRow("SELECT username,password FROM users WHERE username=?", user.username).Scan(dbName, dbPass)
-	fmt.Println("error : " + err.Error())
+	err = db.QueryRow("SELECT * FROM users WHERE username=?", user.username).Scan(&id, &dbName, &dbPass)
+	// for selDB.Next() {
+	// 	var id int
+	// 	var username, password string
+	// 	err = selDB.Scan(&id, &username, &password)
+	// 	if err != nil {
+	// 		panic(err.Error())
+	// 	}
+	// 	fmt.Println("username : " + username)
+	// 	fmt.Println("password : " + password)
+
+	// }
 	fmt.Println("username : " + dbName)
 	fmt.Println("password : " + dbPass)
 
